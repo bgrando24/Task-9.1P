@@ -30,7 +30,7 @@ public class RemoveItemActivity extends AppCompatActivity {
         TextView removeItemLocationTextView = findViewById(R.id.removeItemLocationTextView);
         removeItemDescriptionTextView.setText(item.getDescription());
         removeItemFoundTextView.setText(item.getDate());
-        removeItemLocationTextView.setText(item.getLat().toString() + ", " + item.getLon().toString());
+        removeItemLocationTextView.setText(item.getLocation());
 
 //        remove button
         Button removeItemButton = findViewById(R.id.removeItemButton);

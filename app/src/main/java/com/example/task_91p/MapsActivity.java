@@ -43,28 +43,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+        mMap = googleMap;
+
+
         //        get all items from database
         DataManager dm = new DataManager(this);
         List<LostFoundItem> items = dm.getAllItems();
-//        get lat/lon values, find averages of lat and lon to get midpoint
-        double avgLat = 0;
-        double avgLon = 0;
-        LatLng midpoint;
 
-        if (items.isEmpty()) {
-//            default is sydney
-            midpoint = new LatLng(-34, 151);
-        } else {
-//            calculate midpoint
-            for (LostFoundItem item : items) {
-                avgLat += item.getLat();
-                avgLon += item.getLon();
-            }
-
-            avgLat /= items.size();
-            avgLon /= items.size();
-            midpoint = new LatLng(avgLat, avgLon);
-
+//        only add points to map if items isnt empty
+        if (!items.isEmpty()) {
 //            add markers for each item
             for (LostFoundItem item : items) {
                 LatLng itemLocation = new LatLng(item.getLat(), item.getLon());
@@ -73,10 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
-        mMap = googleMap;
-
-        // Begin camera at midpoint
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(midpoint));
+        // Begin camera at melbourne
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(-37.81, 144.96)));
     }
 }

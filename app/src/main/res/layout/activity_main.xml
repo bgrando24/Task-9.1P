@@ -13,9 +13,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="80dp"
         android:layout_marginTop="275dp"
+        android:layout_marginEnd="81dp"
         android:layout_marginBottom="44dp"
         android:text="Create a new advert"
         app:layout_constraintBottom_toTopOf="@+id/showAllButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,9 +26,11 @@
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="80dp"
+        android:layout_marginEnd="81dp"
         android:layout_marginBottom="45dp"
         android:text="Show all lost and found items"
         app:layout_constraintBottom_toTopOf="@+id/showOnMapButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button

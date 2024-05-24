@@ -1,7 +1,10 @@
 package com.example.task_91p;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -14,17 +17,35 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.PlaceLikelihood;
+import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
+import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class NewAdvertActivity extends AppCompatActivity {
+
+    private void getLocationPermission() {
+        // Check if the ACCESS_FINE_LOCATION permission has been granted
+        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // If not, request the permission
+            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, 1);
+        }
+    }
 
     private final String TAG = "DEBUG_FLAG";
 
@@ -93,6 +114,7 @@ public class NewAdvertActivity extends AppCompatActivity {
 
         // initialise places
         Places.initialize(getApplicationContext(), "AIzaSyAO5VGEnoRaWiqt6DSA4myicZe_GH0HNsQ");
+        PlacesClient placesClient = Places.createClient(this);
 
 
 //        adding address autocomplete feature
@@ -103,6 +125,62 @@ public class NewAdvertActivity extends AppCompatActivity {
             Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
                     .build(this);
             startAutocomplete.launch(intent);
+        });
+
+
+
+//        get current location
+        getCurrentLocationButton.setOnClickListener(v -> {
+            // define the data types to return
+            List<Place.Field> placeFields = Collections.singletonList(Place.Field.NAME);
+
+// create request
+            FindCurrentPlaceRequest request = FindCurrentPlaceRequest.newInstance(placeFields);
+
+// call findCurrentPlace and handle the response - first checking user permission
+            if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+                Task<FindCurrentPlaceResponse> placeResponse = placesClient.findCurrentPlace(request);
+                ((Task<?>) placeResponse).addOnCompleteListener(task -> {
+
+                    if (task.isSuccessful()){
+                        FindCurrentPlaceResponse response = (FindCurrentPlaceResponse) task.getResult();
+//                        find most likely place
+                        PlaceLikelihood mostLikelyPlace = Collections.max(response.getPlaceLikelihoods(), Comparator.comparing(PlaceLikelihood::getLikelihood));
+                        Log.i(TAG, String.format("Most likely place is '%s' with likelihood: %f", mostLikelyPlace.getPlace(), mostLikelyPlace.getLikelihood()));
+//
+//                        for (PlaceLikelihood placeLikelihood : response.getPlaceLikelihoods()) {
+//                            Log.i(TAG, String.format("Place '%s' has likelihood: %f",
+//                                    placeLikelihood.getPlace().getName(),
+//                                    placeLikelihood.getLikelihood()));
+//                        }
+
+//                        get details of most likely place
+                        locationName = mostLikelyPlace.getPlace().getName();
+
+                        if (mostLikelyPlace.getPlace().getLatLng() != null) {
+                            lat[0] = mostLikelyPlace.getPlace().getLatLng().latitude;
+                            lon[0] = mostLikelyPlace.getPlace().getLatLng().longitude;
+                        } else {
+                            Log.e(TAG, "LatLng is null for the place: " + mostLikelyPlace.getPlace().getName());
+                        }
+
+                        addressLocationTextView.setText(locationName);
+
+                    } else {
+                        Exception exception = task.getException();
+                        if (exception instanceof ApiException) {
+                            ApiException apiException = (ApiException) exception;
+                            Log.e(TAG, "Place not found: " + apiException.getStatusCode());
+                        }
+                    }
+                });
+            } else {
+                // A local method to request required permissions;
+                // See https://developer.android.com/training/permissions/requesting
+                getLocationPermission();
+            }
+
         });
 
 
